@@ -1,0 +1,59 @@
+import cp.
+/*
+This program is used to resolve the stock problem.
+*/
+go=>
+    SalesOpportunity=new_array(100,8),
+    Seed=0,
+    foreach(I in 1..len(SalesOpportunity),J in 1..8)
+        Seed:=Seed+1,
+%generate a random number from 0 to 10 to simulate the orders.
+        SalesOpportunity[I,J]=random(Seed) mod 10
+        %println(SalesOpportunity[I,J])
+end,
+
+UnitPriceFromVendor={8000,4000,6000,1000,5000,10000,600,2000},
+Profit={80*30,40*15,60*25,10*10,50*40,100*45,6*50,20*40},
+
+TotalCostForAllOrders=0,
+foreach(I in 1..len(SalesOpportunity), J in 1..len(UnitPriceFromVendor))
+TotalCostForAllOrders:=TotalCostForAllOrders+SalesOpportunity[I,J]*UnitPriceFromVendor[J]
+end,
+print("Total cash flow needed for all the sales opportunites is:"),
+writeln(TotalCostForAllOrders),
+CashFlow = ceiling(TotalCostForAllOrders*0.4),
+print("The cash flow is:"),
+writeln(CashFlow),
+
+maxProfit(UnitPriceFromVendor,Profit,CashFlow,SalesOpportunity).
+
+maxProfit(UnitPriceFromVendor,Profit,CashFlow,SalesOpportunity)=>
+    N=SalesOpportunity.length,
+
+    TargetOrder=new_array(N),
+    foreach(I in 1..N)
+        TargetOrder[I]::0..1
+    end,
+%TotalCost=0,
+ %   TotalProfit=0,
+%foreach (I in 1..N, J in 1..8)
+TotalCost#=sum([SalesOpportunity[I,J]*UnitPriceFromVendor[J]*TargetOrder[I]:I in 1..N, J in 1..len(UnitPriceFromVendor)]),
+TotalProfit#=sum([SalesOpportunity[I,J]*Profit[J]*TargetOrder[I]:I in 1..N, J in 1..len(UnitPriceFromVendor)]),
+%TotalProfit#=sum([TargetOrder[I]: I in 1..N]),
+%TotalProfit#=TotalProfit+SalesOpportunity[I,J]*Profit[J]
+TotalCost#=<CashFlow,
+solve([$max(TotalProfit)],TargetOrder),
+%writeln(TotalProfit),
+%writeln(TotalCost),
+%writeln(TargetOrder),
+printf("Please choose the order:"),
+foreach(I in 1..len(TargetOrder),TargetOrder[I]>0)
+    printf("%d,",I)
+end,
+nl,
+printf("And you can get the maximum profit of $%d",TotalProfit).
+
+
+
+
+

@@ -1,0 +1,115 @@
+import cp.
+/*
+This program is used to resolve the stock problem.
+*/
+go=>
+SalesOpportunity=new_array(20,8),
+Seed=0,
+foreach(I in 1..len(SalesOpportunity),J in 1..8)
+    Seed:=Seed+1,
+    %generate a random number from 0 to 10 to simulate the orders.
+    SalesOpportunity[I,J]=random(Seed) mod 10
+end,
+%println(SalesOpportunity),
+UnitPriceFromVendor={8000,4000,6000,1000,5000,10000,600,2000},
+Profit={80*30,40*15,60*25,10*10,50*40,100*45,6*50,20*40},
+
+Sentativity_of_Beta_version=2,
+AverageProfitRatio={sum({SalesOpportunity[I,J]*Profit[J]:J in 1..len(Profit)})/sum({SalesOpportunity[I,J]*UnitPriceFromVendor[J]:J in 1..len(Profit)}):I in 1..len(SalesOpportunity)},
+/*
+foreach(I in 1..len(SalesOpportunity))
+    print(AverageProfitRatio[I])
+end,
+nl,
+*/
+AverageProfitRatio_with_index=new_array(len(AverageProfitRatio),2),
+foreach(I in 1..len(AverageProfitRatio))
+    AverageProfitRatio_with_index[I,1]=AverageProfitRatio[I],
+    AverageProfitRatio_with_index[I,2]=I
+    %printf("%f,%d\n",AverageProfitRatio_with_index[I,1],AverageProfitRatio_with_index[I,2])
+end,
+SortedAverageProfitRatio_with_index=sort_down(AverageProfitRatio_with_index),
+/*
+foreach(I in 1..len(AverageProfitRatio))
+printf("%f,%d\n",SortedAverageProfitRatio_with_index[I,1],SortedAverageProfitRatio_with_index[I,2])
+end,
+*/
+
+Index_of_sorted_opportunity = {SortedAverageProfitRatio_with_index[I,2]: I in 1..len(SortedAverageProfitRatio_with_index)},
+%print(Index_of_sorted_opportunity),
+TotalCostForAllOrders=0,
+foreach(I in 1..len(SalesOpportunity), J in 1..len(UnitPriceFromVendor))
+TotalCostForAllOrders:=TotalCostForAllOrders+SalesOpportunity[I,J]*UnitPriceFromVendor[J]
+end,
+print("Total cash flow needed for all the sales opportunites is:"),
+writeln(TotalCostForAllOrders),
+CashFlow = ceiling(TotalCostForAllOrders*0.4),
+print("The available Cash Flow is:"),
+writeln(CashFlow),
+ORDER_NUMBER=1,
+
+TOTAL_NUMBER_OF_ORDER=len(SalesOpportunity),
+TotalProfit_for_each_iteration=[],
+LookForward_profit=0,
+Latest_profit=10000,
+while(ORDER_NUMBER<=TOTAL_NUMBER_OF_ORDER && Latest_profit>LookForward_profit)
+printf("Best total profit for ierations 1 to %d:\n",ORDER_NUMBER),
+IndexPartial=slice(Index_of_sorted_opportunity,1,ORDER_NUMBER),
+SalesOpportunityPartial={SalesOpportunity[I]:I in IndexPartial},
+maxProfit(UnitPriceFromVendor,Profit,CashFlow,SalesOpportunityPartial,TargetOrder,TotalProfit),
+TotalProfit_for_each_iteration :=TotalProfit_for_each_iteration++[TotalProfit],
+println(TotalProfit_for_each_iteration),
+
+
+if ORDER_NUMBER<=Sentativity_of_Beta_version then
+LookForward_profit:=0
+else
+LookForward_profit:=TotalProfit_for_each_iteration[ORDER_NUMBER-Sentativity_of_Beta_version]
+end,
+Latest_profit:=TotalProfit_for_each_iteration[ORDER_NUMBER],
+
+
+%printf("latest %d,pre %d\n",Latest_profit,LookForward_profit),
+
+ORDER_NUMBER:=ORDER_NUMBER+1,
+if not (ORDER_NUMBER<=TOTAL_NUMBER_OF_ORDER && Latest_profit>LookForward_profit) then
+    printf("Please prepare the stock for the orders list below:\n"),
+    foreach(I in 1..len(TargetOrder),TargetOrder[I]>0)
+        %printf("%d,%d",I,Index_of_sorted_opportunity[I])
+        printf("%d,",Index_of_sorted_opportunity[I])
+    end,
+nl,
+printf("And you can get the maximum profit of $%d by using the suggested stock strategy.\n",TotalProfit)
+
+end
+end.
+
+
+/*
+printf("Please prepare the stock for the orders list below:"),
+foreach(I in 1..len(TargetOrder),TargetOrder[I]>0)
+printf("%d,%d",I,Index_of_sorted_opportunity[I])
+end,
+nl,
+printf("And you can get the maximum profit of $%d by using the suggested stock strategy.\n",TotalProfit).
+*/
+
+
+
+
+maxProfit(UnitPriceFromVendor,Profit,CashFlow,SalesOpportunity,TargetOrder,TotalProfit)=>
+    N=SalesOpportunity.length,
+
+    TargetOrder=new_array(N),
+    foreach(I in 1..N)
+        TargetOrder[I]::0..1
+    end,
+
+    TotalCost#=sum([SalesOpportunity[I,J]*UnitPriceFromVendor[J]*TargetOrder[I]:I in 1..N, J in 1..len(UnitPriceFromVendor)]),
+    TotalProfit#=sum([SalesOpportunity[I,J]*Profit[J]*TargetOrder[I]:I in 1..N, J in 1..len(UnitPriceFromVendor)]),
+
+    TotalCost#=<CashFlow,
+    solve([$max(TotalProfit)],TargetOrder).
+
+
+
